@@ -6,9 +6,12 @@ socket.on('vehicle_moved', ({ vehicule_id, x, y }) => {
         if (!b.vehicules) continue;
         const veh = b.vehicules.find(v => v.id === vehicule_id);
         if (veh) {
+            if (b.joueur_id != joueur_id) {
+                if (veh.cur_x != null && veh.cur_y != null)
+                    majDirection(veh, x - veh.cur_x, y - veh.cur_y);
+                veh.cur_x = x; veh.cur_y = y;
+            }
             veh.x = x; veh.y = y;
-            if (veh.cur_x != null && veh.cur_y != null)
-                majDirection(veh, veh.x - veh.cur_x, veh.y - veh.cur_y);
             break;
         }
     }
