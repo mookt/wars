@@ -256,7 +256,9 @@ function _construireVehiculeInterne(type, req, res, cout) {
                             [req.params.id, type, pos_x, pos_y, construction_fin],
                             (err3, result) => {
                                 if (err3) return res.status(500).json({ erreur: 'Erreur serveur' });
-                                res.json({ id: Number(result.insertId), jeep_x: pos_x, jeep_y: pos_y, construction_fin });
+                                const vid = Number(result.insertId);
+                                req.app.get('io').emit('vehicle_built', { joueur_id: Number(req.params.id), id: vid, type, x: pos_x, y: pos_y, construction_fin });
+                                res.json({ id: vid, jeep_x: pos_x, jeep_y: pos_y, construction_fin });
                             }
                         );
                     }
@@ -478,6 +480,7 @@ router.patch('/:id/jeep/arrive', (req, res) => {
             [Number(x), Number(y), vehicule_id, req.params.id],
             (err) => {
                 if (err) return res.status(500).json({ erreur: 'Erreur serveur' });
+                req.app.get('io').emit('vehicle_arrived', { vehicule_id: Number(vehicule_id), x: Number(x), y: Number(y) });
                 res.json({ ok: true });
             }
         );

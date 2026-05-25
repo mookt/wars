@@ -42,6 +42,40 @@ function centrerCarte() {
     clampCamera();
 }
 
+// ── Sync périodique des autres joueurs (rattrapage si événement manqué) ──
+async function syncTiers() {
+    try {
+        const res = await fetch('/api/joueur/bases', { headers: { 'Authorization': `Bearer ${token}` } });
+        if (!res.ok) return;
+        const data = await res.json();
+        data.forEach(nb => {
+            if (nb.joueur_id == joueur_id) return;
+            const base = bases.find(b =>
+                b.joueur_id == nb.joueur_id ||
+                (b._neutreId != null && b._neutreId === nb._neutreId)
+            );
+            if (!base) return;
+            (nb.vehicules || []).forEach(nv => {
+                const existing = (base.vehicules || []).find(v => v.id === nv.id);
+                if (existing) {
+                    existing.x = nv.x; existing.y = nv.y;
+                    if (existing.cur_x == null) { existing.cur_x = nv.x; existing.cur_y = nv.y; }
+                } else {
+                    if (!base.vehicules) base.vehicules = [];
+                    base.vehicules.push({ ...nv, cur_x: nv.x, cur_y: nv.y });
+                }
+            });
+            if (base.vehicules) {
+                const idsServeur = new Set((nb.vehicules || []).map(v => v.id));
+                base.vehicules = base.vehicules.filter(v =>
+                    typeof v.id === 'string' || idsServeur.has(v.id)
+                );
+            }
+        });
+    } catch (e) {}
+}
+setInterval(syncTiers, 10000);
+
 // ── Démarrage ────────────────────────────────────────────────
 resize();
 setLoading(15);

@@ -53,6 +53,27 @@ socket.on('base_perdue', ({ base_id }) => {
     }
 });
 
+socket.on('vehicle_arrived', ({ vehicule_id, x, y }) => {
+    for (const b of bases) {
+        if (!b.vehicules || b.joueur_id == joueur_id) continue;
+        const veh = b.vehicules.find(v => v.id === vehicule_id);
+        if (veh) {
+            veh.x = x; veh.y = y;
+            veh.cur_x = x; veh.cur_y = y;
+            break;
+        }
+    }
+});
+
+socket.on('vehicle_built', ({ joueur_id: jid, id, type, x, y, construction_fin }) => {
+    if (jid == joueur_id) return;
+    const base = bases.find(b => b.joueur_id == jid);
+    if (!base) return;
+    if (!base.vehicules) base.vehicules = [];
+    if (base.vehicules.find(v => v.id === id)) return;
+    base.vehicules.push({ id, type, x, y, cur_x: x, cur_y: y, groupe_id: null, formation_slot: null, construction_fin, construit: false });
+});
+
 socket.on('vehicle_destroyed', ({ vehicule_id }) => {
     for (const b of bases) {
         if (!b.vehicules) continue;
