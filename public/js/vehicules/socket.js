@@ -6,12 +6,14 @@ socket.on('vehicle_moved', ({ vehicule_id, x, y }) => {
         if (!b.vehicules) continue;
         const veh = b.vehicules.find(v => v.id === vehicule_id);
         if (veh) {
-            if (b.joueur_id != joueur_id) {
-                if (veh.cur_x != null && veh.cur_y != null)
-                    majDirection(veh, x - veh.cur_x, y - veh.cur_y);
-                veh.cur_x = x; veh.cur_y = y;
-            }
             veh.x = x; veh.y = y;
+            if (b.joueur_id != joueur_id) {
+                veh._reachedDest = false;
+                veh._waypoints   = [];
+                veh._pfLastCalc  = 0;
+                if (veh.cur_x != null)
+                    majDirection(veh, x - veh.cur_x, y - veh.cur_y);
+            }
             break;
         }
     }
@@ -71,7 +73,13 @@ socket.on('vehicle_built', ({ joueur_id: jid, id, type, x, y, construction_fin }
     if (!base) return;
     if (!base.vehicules) base.vehicules = [];
     if (base.vehicules.find(v => v.id === id)) return;
-    base.vehicules.push({ id, type, x, y, cur_x: x, cur_y: y, groupe_id: null, formation_slot: null, construction_fin, construit: false });
+    const isBuilt = !construction_fin || Date.now() >= construction_fin;
+    const veh = { id, type, x, y, cur_x: x, cur_y: y, groupe_id: null, formation_slot: null,
+                  construction_fin, construit: isBuilt ? 1 : 0,
+                  pv: null, lastAttack: 0, target: null, frameIndex: 0,
+                  _reachedDest: true, _waypoints: [] };
+    base.vehicules.push(veh);
+    if (!isBuilt) planifierActivation(veh);
 });
 
 socket.on('vehicle_destroyed', ({ vehicule_id }) => {

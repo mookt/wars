@@ -287,7 +287,9 @@ function _construireVehiculeInterne(type, req, res, cout) {
                                     [req.params.id, type, pos_x, pos_y, construction_fin, n],
                                     (err3, result) => {
                                         if (err3) return res.status(500).json({ erreur: 'Erreur serveur' });
-                                        res.json({ id: Number(result.insertId), jeep_x: pos_x, jeep_y: pos_y, construction_fin });
+                                        const vid = Number(result.insertId);
+                                        req.app.get('io').emit('vehicle_built', { joueur_id: Number(req.params.id), id: vid, type, x: pos_x, y: pos_y, construction_fin });
+                                        res.json({ id: vid, jeep_x: pos_x, jeep_y: pos_y, construction_fin });
                                     }
                                 );
                             }
