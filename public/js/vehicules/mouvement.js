@@ -121,11 +121,26 @@ function animerVehicules() {
         });
     });
 
-    // Référence (slot 0) et membres de chaque groupe
+    // Mouvement simplifié pour les véhicules des autres joueurs (interpolation directe)
+    bases.forEach(b => {
+        if (!b.vehicules || b.joueur_id == joueur_id) return;
+        b.vehicules.forEach(v => {
+            if (!v.construit || v.cur_x == null) return;
+            const dx = v.x - v.cur_x, dy = v.y - v.cur_y;
+            const dist = Math.hypot(dx, dy);
+            if (dist < 1) return;
+            const spd = Math.min(vcfg(v).speed, dist);
+            v.cur_x += (dx / dist) * spd;
+            v.cur_y += (dy / dist) * spd;
+            majDirection(v, dx, dy);
+        });
+    });
+
+    // Référence (slot 0) et membres de chaque groupe (seulement le joueur courant)
     const refsGroupes   = {};
     const membresGroupes = {};
     bases.forEach(b => {
-        if (!b.vehicules) return;
+        if (!b.vehicules || b.joueur_id != joueur_id) return;
         b.vehicules.forEach(v => {
             if (!v.construit || !v.groupe_id || v.cur_x == null) return;
             if (!membresGroupes[v.groupe_id]) membresGroupes[v.groupe_id] = [];
@@ -167,10 +182,10 @@ function animerVehicules() {
         ...basesObs
     ];
 
-    // ── Déplacement des groupes ───────────────────────────────
+    // ── Déplacement des groupes (joueur courant uniquement) ──────
     const groupesTraites = new Set();
     bases.forEach(base => {
-        if (!base.vehicules) return;
+        if (!base.vehicules || base.joueur_id != joueur_id) return;
         base.vehicules.forEach(vehicle => {
             if (!vehicle.construit || !vehicle.groupe_id || vehicle.cur_x == null) return;
             const gid = vehicle.groupe_id;
@@ -550,9 +565,9 @@ function animerVehicules() {
         });
     });
 
-    // ── Déplacement des solos ─────────────────────────────────
+    // ── Déplacement des solos (joueur courant uniquement) ────────
     bases.forEach(base => {
-        if (!base.vehicules) return;
+        if (!base.vehicules || base.joueur_id != joueur_id) return;
         base.vehicules.forEach(vehicle => {
             if (!vehicle.construit || vehicle.groupe_id || vehicle.x == null || vehicle.cur_x == null || vehicle.type === 'sam') return;
             if (vehicle._ancreEnNiche) return;
