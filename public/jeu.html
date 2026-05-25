@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>WarZone — Carte</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/jeu.css">
+</head>
+<body>
+
+    <!-- Loading -->
+    <div id="loading">
+        <div>GÉNÉRATION DE LA CARTE</div>
+        <div class="loading-bar"><div class="loading-fill" id="loading-fill"></div></div>
+    </div>
+
+    <!-- HUD -->
+    <div id="hud">
+        <div class="hud-logo">⚔ WARZONE</div>
+        <div class="hud-infos">
+            <div class="hud-stat">
+                <span class="hud-label">Commandant</span>
+                <span class="hud-val" id="hud-pseudo">—</span>
+            </div>
+            <div class="hud-sep"></div>
+            <div class="hud-stat">
+                <span class="hud-label">Points</span>
+                <span class="hud-val" id="hud-points">0</span>
+            </div>
+            <div class="hud-sep"></div>
+            <div class="hud-stat">
+                <span class="hud-label">🧱 Béton</span>
+                <span class="hud-val" id="hud-beton">—</span>
+            </div>
+            <div class="hud-sep"></div>
+            <div class="hud-stat">
+                <span class="hud-label">⚙ Acier</span>
+                <span class="hud-val" id="hud-acier">—</span>
+            </div>
+            <div class="hud-sep"></div>
+            <div class="hud-stat">
+                <span class="hud-label">🪨 Charbon</span>
+                <span class="hud-val" id="hud-charbon">—</span>
+            </div>
+            <div class="hud-sep"></div>
+            <div class="hud-stat">
+                <span class="hud-label">⛽ Carburant</span>
+                <span class="hud-val" id="hud-carburant">—</span>
+            </div>
+            <div class="hud-sep"></div>
+            <div class="hud-stat">
+                <span class="hud-label">🔷 Titanium</span>
+                <span class="hud-val" id="hud-titanium">—</span>
+            </div>
+            <div class="hud-sep"></div>
+            <div class="hud-stat">
+                <span class="hud-label">Position</span>
+                <span class="hud-val" id="hud-pos">—</span>
+            </div>
+        </div>
+        <button class="btn-info" onclick="window.open('/blackjack.html','_blank')">📋 Infos</button>
+        <button class="btn-deconnexion" onclick="deconnexion()">⏏ Déconnexion</button>
+    </div>
+
+    <canvas id="map-canvas"></canvas>
+
+    <!-- Minimap -->
+    <div id="minimap-container">
+        <div class="minimap-titre">Carte Tactique</div>
+        <canvas id="minimap-canvas" width="200" height="200"></canvas>
+        <div class="minimap-coords" id="minimap-coords">X:0 Y:0</div>
+        <div id="minimap-legende">
+            <span><i class="dot dot-me"></i>Allié</span>
+            <span><i class="dot dot-enn"></i>Ennemi</span>
+            <span><i class="dot dot-lib"></i>Libre</span>
+        </div>
+    </div>
+
+    <!-- Panneau béton -->
+    <div id="panneau-beton" onmouseenter="annulerMasqueBeton()" onmouseleave="masquerPanneauBeton()">
+        <div class="pn-titre">🏭 PRODUCTION DE BÉTON</div>
+        <div class="pn-info"><span class="pn-label">Niveau</span><span id="pb-niveau">—</span></div>
+        <div class="pn-info"><span class="pn-label">Stock</span><span id="pb-stock">—</span></div>
+        <div class="pn-info"><span class="pn-label">Production</span><span id="pb-prod">—</span></div>
+        <button class="pn-btn" id="pb-btn-ameliorer" onclick="ameliorerBeton()">⬆ AMÉLIORER</button>
+    </div>
+
+    <!-- Panneau acier -->
+    <div id="panneau-acier" onmouseenter="annulerMasqueAcier()" onmouseleave="masquerPanneauAcier()">
+        <div class="pn-titre">⚙ PRODUCTION D'ACIER</div>
+        <div class="pn-info"><span class="pn-label">Niveau</span><span id="pa-niveau">—</span></div>
+        <div class="pn-info"><span class="pn-label">Stock</span><span id="pa-stock">—</span></div>
+        <div class="pn-info"><span class="pn-label">Production</span><span id="pa-prod">—</span></div>
+        <button class="pn-btn" id="pa-btn-ameliorer" onclick="ameliorerAcier()">⬆ AMÉLIORER</button>
+    </div>
+
+    <!-- Panneau charbon -->
+    <div id="panneau-charbon" onmouseenter="annulerMasqueCharbon()" onmouseleave="masquerPanneauCharbon()">
+        <div class="pn-titre">🪨 PRODUCTION DE CHARBON</div>
+        <div class="pn-info"><span class="pn-label">Niveau</span><span id="pc-niveau">—</span></div>
+        <div class="pn-info"><span class="pn-label">Stock</span><span id="pc-stock">—</span></div>
+        <div class="pn-info"><span class="pn-label">Production</span><span id="pc-prod">—</span></div>
+        <button class="pn-btn" id="pc-btn-ameliorer" onclick="ameliorerCharbon()">⬆ AMÉLIORER</button>
+    </div>
+
+    <!-- Panneau carburant -->
+    <div id="panneau-carburant" onmouseenter="annulerMasqueCarburant()" onmouseleave="masquerPanneauCarburant()">
+        <div class="pn-titre">⛽ PRODUCTION DE CARBURANT</div>
+        <div class="pn-info"><span class="pn-label">Niveau</span><span id="pcar-niveau">—</span></div>
+        <div class="pn-info"><span class="pn-label">Stock</span><span id="pcar-stock">—</span></div>
+        <div class="pn-info"><span class="pn-label">Production</span><span id="pcar-prod">—</span></div>
+        <button class="pn-btn" id="pcar-btn-ameliorer" onclick="ameliorerCarburant()">⬆ AMÉLIORER</button>
+    </div>
+
+    <!-- Panneau niche -->
+    <div id="panneau-niche" onmouseenter="annulerMasqueNiche()" onmouseleave="masquerNiche()">
+        <div class="pn-titre">⚙ BÂTIMENTS</div>
+        <div id="pn-sam-count" style="display:none;color:#00c850;font-family:'Share Tech Mono',monospace;font-size:11px;padding:2px 0 4px 0;text-align:center;letter-spacing:1px"></div>
+        <button class="pn-btn" id="pn-btn-murs" onclick="ameliorerMurs()">⬆ AMÉLIORER LES MURS</button>
+
+        <!-- Info véhicule au survol -->
+        <div id="pnv-header">
+            <div id="pnv-name">VÉHICULES</div>
+            <div id="pnv-details"></div>
+        </div>
+
+        <!-- Grille de sélection -->
+        <!-- Sélecteur de quantité + bouton popup -->
+        <div id="pnv-queue-bar">
+            <span id="pnv-queue-label">FILE :</span>
+            <span id="pnv-qty-val">0</span>
+            <button class="pnv-qty-btn" onclick="ouvrirPopupFile()" title="Modifier la file d'attente">⚙</button>
+        </div>
+
+        <!-- Panneau construction base capturée -->
+        <div id="popup-base-capturee" style="display:none;position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#0a120a;border:2px solid #00ff44;padding:20px;z-index:9999;min-width:260px;box-shadow:0 0 20px #00ff44">
+            <div id="pbc-titre" style="color:#00c850;font-family:'Share Tech Mono',monospace;font-size:13px;margin-bottom:12px;text-align:center">CONSTRUCTION</div>
+            <div id="pbc-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px"></div>
+            <button onclick="fermerPanneauBaseCapturee()" style="width:100%;background:#222;color:#aaa;border:1px solid #444;padding:6px;cursor:pointer;font-family:'Share Tech Mono',monospace">FERMER</button>
+        </div>
+
+        <!-- Popup file d'attente -->
+        <div id="popup-file" style="display:none">
+            <div id="popup-file-box">
+                <div class="popup-titre">FILE D'ATTENTE — Quelle quantité ?</div>
+                <input type="range" id="popup-slider" min="0" max="50" value="0"
+                       oninput="majPopupFile()">
+                <div id="popup-qty">0×</div>
+                <div id="popup-cout">Carburant : 0</div>
+                <div id="popup-presets">
+                    <button class="popup-preset" onclick="setPopupVal(0)">0</button>
+                    <button class="popup-preset" onclick="setPopupVal(5)">5</button>
+                    <button class="popup-preset" onclick="setPopupVal(10)">10</button>
+                    <button class="popup-preset" onclick="setPopupVal(25)">25</button>
+                    <button class="popup-preset" onclick="setPopupVal(50)">50</button>
+                </div>
+                <div id="popup-actions">
+                    <button class="popup-ok" onclick="validerPopupFile()">OK</button>
+                    <button class="popup-cancel" onclick="fermerPopupFile()">ANNULER</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="pnv-grid">
+            <div class="pnv-cell" id="cell-jeep"
+                 onmouseenter="survolVehicule('jeep')" onmouseleave="survolVehicule(null)"
+                 onclick="celluleVehiculeClick('jeep',event)">
+                <canvas class="pnv-icon" id="icon-jeep" width="60" height="60"></canvas>
+                <div class="pnv-building-overlay" id="overlay-jeep">
+                    <div class="pnv-cancel-btn" onclick="annulerConstruction(event)">✕<br><span>ANNULER</span></div>
+                </div>
+                <div class="pnv-check" id="check-jeep">✓</div>
+            </div>
+            <div class="pnv-cell" id="cell-humvet"
+                 onmouseenter="survolVehicule('humvet')" onmouseleave="survolVehicule(null)"
+                 onclick="celluleVehiculeClick('humvet',event)">
+                <canvas class="pnv-icon" id="icon-humvet" width="60" height="60"></canvas>
+                <div class="pnv-building-overlay" id="overlay-humvet">
+                    <div class="pnv-cancel-btn" onclick="annulerConstruction(event)">✕<br><span>ANNULER</span></div>
+                </div>
+                <div class="pnv-check" id="check-humvet">✓</div>
+            </div>
+            <div class="pnv-cell" id="cell-sam"
+                 onmouseenter="survolVehicule('sam')" onmouseleave="survolVehicule(null)"
+                 onclick="celluleVehiculeClick('sam',event)">
+                <canvas class="pnv-icon" id="icon-sam" width="60" height="60"></canvas>
+                <div class="pnv-building-overlay" id="overlay-sam">
+                    <div class="pnv-cancel-btn" onclick="annulerConstruction(event)">✕<br><span>ANNULER</span></div>
+                </div>
+                <div class="pnv-check" id="check-sam">✓</div>
+            </div>
+            <div class="pnv-cell" id="cell-tt"
+                 onmouseenter="survolVehicule('tt')" onmouseleave="survolVehicule(null)"
+                 onclick="celluleVehiculeClick('tt',event)">
+                <canvas class="pnv-icon" id="icon-tt" width="60" height="60"></canvas>
+                <div class="pnv-building-overlay" id="overlay-tt">
+                    <div class="pnv-cancel-btn" onclick="annulerConstruction(event)">✕<br><span>ANNULER</span></div>
+                </div>
+                <div class="pnv-check" id="check-tt">✓</div>
+            </div>
+            <div class="pnv-cell pnv-locked"></div>
+            <div class="pnv-cell pnv-locked"></div>
+        </div>
+
+        <div id="pn-build-status"></div>
+    </div>
+
+    <!-- Indicateur de construction au-dessus du bâtiment -->
+    <div id="bld-indicator" style="display:none">
+        <canvas id="bld-icon" width="36" height="36"></canvas>
+        <div id="bld-info">
+            <div id="bld-name"></div>
+            <div id="bld-timer"></div>
+        </div>
+    </div>
+
+    <!-- Contrôles -->
+    <div id="controles">
+        <div class="ctrl"><span>Clic + Glisser</span> Déplacer</div>
+        <div class="ctrl"><span>Clic base</span> Gérer</div>
+    </div>
+
+    <!-- Variables globales de session -->
+    <script>
+    const token     = localStorage.getItem('token');
+    const joueur_id = localStorage.getItem('joueur_id');
+    const pseudo    = localStorage.getItem('pseudo');
+    if (!token || !joueur_id) window.location.href = '/index.html';
+    document.getElementById('hud-pseudo').textContent = pseudo || '—';
+    function deconnexion() { localStorage.clear(); window.location.href = '/index.html'; }
+
+    const MAP_W = 8000, MAP_H = 8000;
+    const canvas = document.getElementById('map-canvas');
+    const ctx    = canvas.getContext('2d');
+    let camX = 0, camY = 0;
+    let drag = false, dragSX = 0, dragSY = 0, camSX = 0, camSY = 0;
+
+    const offscreen = document.createElement('canvas');
+    offscreen.width  = MAP_W;
+    offscreen.height = MAP_H;
+    const offCtx = offscreen.getContext('2d');
+
+    let bases = [];
+    </script>
+
+    <!-- Modules du jeu -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/constantes.js"></script>
+    <script src="/js/terrain.js"></script>
+    <script src="/js/renderer.js"></script>
+    <script src="/js/niche.js"></script>
+    <script src="/js/vehicules/pathfinding.js"></script>
+    <script src="/js/vehicules/config.js"></script>
+    <script src="/js/vehicules/formation.js"></script>
+    <script src="/js/vehicules/socket.js"></script>
+    <script src="/js/vehicules/groupes.js"></script>
+    <script src="/js/vehicules/combat.js"></script>
+    <script src="/js/vehicules/mouvement.js"></script>
+    <script src="/js/vehicules/dessin.js"></script>
+    <script src="/js/vehicules/construction.js"></script>
+    <script src="/js/vehicules/selection.js"></script>
+    <script src="/js/camera.js"></script>
+    <script src="/js/beton.js"></script>
+    <script src="/js/acier.js"></script>
+    <script src="/js/charbon.js"></script>
+    <script src="/js/carburant.js"></script>
+    <script src="/js/titanium.js"></script>
+    <script src="/js/game.js"></script>
+
+
+</body>
+</html>

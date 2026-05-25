@@ -1,0 +1,195 @@
+/* ============================================================
+   LOGIN.CSS — Style de la page de connexion
+   ============================================================ */
+
+/* ── Reset & Base ────────────────────────────────────────── */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #0d1117;
+    font-family: 'Courier New', monospace;
+    overflow: hidden;
+}
+
+/* ── Fond animé ──────────────────────────────────────────── */
+.bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background:
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 40px,
+            rgba(0, 255, 70, 0.03) 40px,
+            rgba(0, 255, 70, 0.03) 41px
+        ),
+        repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 40px,
+            rgba(0, 255, 70, 0.03) 40px,
+            rgba(0, 255, 70, 0.03) 41px
+        );
+    animation: gridMove 20s linear infinite;
+}
+
+@keyframes gridMove {
+    0%   { background-position: 0 0, 0 0; }
+    100% { background-position: 0 40px, 40px 0; }
+}
+
+/* ── Carte principale ────────────────────────────────────── */
+.carte {
+    position: relative;
+    z-index: 1;
+    width: 420px;
+    background: rgba(13, 17, 23, 0.95);
+    border: 1px solid rgba(0, 255, 70, 0.3);
+    border-radius: 4px;
+    padding: 40px;
+    box-shadow:
+        0 0 40px rgba(0, 255, 70, 0.1),
+        inset 0 0 40px rgba(0, 0, 0, 0.5);
+}
+
+/* ── Logo ────────────────────────────────────────────────── */
+.logo {
+    text-align: center;
+    margin-bottom: 36px;
+}
+
+.logo h1 {
+    font-size: 2em;
+    color: #00ff46;
+    letter-spacing: 8px;
+    text-transform: uppercase;
+    text-shadow: 0 0 20px rgba(0, 255, 70, 0.5);
+}
+
+.logo p {
+    color: #3a4a3a;
+    font-size: 0.75em;
+    letter-spacing: 3px;
+    margin-top: 6px;
+    text-transform: uppercase;
+}
+
+/* ── Onglets ─────────────────────────────────────────────── */
+.tabs {
+    display: flex;
+    margin-bottom: 28px;
+    border-bottom: 1px solid rgba(0, 255, 70, 0.2);
+}
+
+.tab {
+    flex: 1;
+    padding: 10px;
+    background: none;
+    border: none;
+    color: #3a4a3a;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85em;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: color 0.3s;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+}
+
+.tab.active {
+    color: #00ff46;
+    border-bottom-color: #00ff46;
+}
+
+/* ── Formulaire ──────────────────────────────────────────── */
+.form-panel { display: none; }
+.form-panel.active { display: block; }
+
+.form-group {
+    margin-bottom: 18px;
+}
+
+label {
+    display: block;
+    color: #3a6a3a;
+    font-size: 0.72em;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+input {
+    width: 100%;
+    padding: 12px 14px;
+    background: rgba(0, 255, 70, 0.03);
+    border: 1px solid rgba(0, 255, 70, 0.2);
+    border-radius: 2px;
+    color: #00ff46;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+    outline: none;
+    transition: border 0.3s, box-shadow 0.3s;
+}
+
+input:focus {
+    border-color: rgba(0, 255, 70, 0.6);
+    box-shadow: 0 0 12px rgba(0, 255, 70, 0.1);
+}
+
+input::placeholder { color: #2a3a2a; }
+
+/* ── Bouton ──────────────────────────────────────────────── */
+.btn {
+    width: 100%;
+    padding: 14px;
+    margin-top: 8px;
+    background: rgba(0, 255, 70, 0.1);
+    border: 1px solid rgba(0, 255, 70, 0.5);
+    border-radius: 2px;
+    color: #00ff46;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85em;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn:hover {
+    background: rgba(0, 255, 70, 0.2);
+    box-shadow: 0 0 20px rgba(0, 255, 70, 0.2);
+}
+
+.btn:active { transform: scale(0.98); }
+
+/* ── Message feedback ────────────────────────────────────── */
+.message {
+    margin-top: 16px;
+    padding: 10px 14px;
+    border-radius: 2px;
+    font-size: 0.82em;
+    letter-spacing: 1px;
+    display: none;
+}
+
+.message.succes {
+    background: rgba(0, 255, 70, 0.08);
+    border: 1px solid rgba(0, 255, 70, 0.3);
+    color: #00ff46;
+}
+
+.message.erreur {
+    background: rgba(255, 50, 50, 0.08);
+    border: 1px solid rgba(255, 50, 50, 0.3);
+    color: #ff4444;
+}

@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mysql -u root monjeu -e \"ALTER TABLE joueurs ADD COLUMN email_verifie TINYINT\\(1\\) NOT NULL DEFAULT 0, ADD COLUMN code_verification VARCHAR\\(6\\) NULL, ADD COLUMN code_expiration DATETIME NULL;\")",
+      "Bash(Get-ChildItem -Path \"c:\\\\monjeu\" -Recurse -Directory)",
+      "Bash(node -e \"const db = require\\('./db'\\); db.query\\('ALTER TABLE joueurs_map ADD COLUMN construction_queue TEXT DEFAULT \\\\\\\\'[]\\\\\\\\'', err => { console.log\\(err ? 'Colonne existe déjà ou erreur: ' + err.message : 'OK: construction_queue ajouté'\\); db.end?.\\(\\); process.exit\\(\\); }\\);\")",
+      "Bash(node -e \"require\\('dotenv'\\).config\\(\\); const db = require\\('./db'\\); db.query\\('ALTER TABLE joueurs_map ADD COLUMN construction_queue TEXT DEFAULT \\\\\\\\'[]\\\\\\\\'', err => { console.log\\(err ? 'Info: ' + err.message : 'OK: construction_queue ajouté'\\); process.exit\\(\\); }\\);\")",
+      "PowerShell(Get-ChildItem c:\\\\monjeu -Recurse | Where-Object { $_.Extension -eq \".png\" } | Select-Object -First 10 FullName)",
+      "PowerShell(cmd /c \"dir c:\\\\monjeu /s /b | findstr /i .png\" 2>$null)",
+      "Bash(Get-ChildItem -Path \"c:\\\\monjeu\" -Recurse -Force)",
+      "Bash(Select-Object FullName, PSIsContainer)",
+      "Bash(Sort-Object FullName)"
+    ]
+  }
+}

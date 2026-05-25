@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WarZone — Connexion</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================================
+           RESET & BASE
+        ============================================================ */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #080c0f;
+            font-family: 'Share Tech Mono', monospace;
+            overflow: hidden;
+        }
+
+        /* ============================================================
+           FOND — Grille militaire animée
+        ============================================================ */
+        .bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+        }
+
+        /* Grille */
+        .bg::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0,200,80,.06) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,200,80,.06) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridScroll 25s linear infinite;
+        }
+
+        @keyframes gridScroll {
+            0%   { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        /* Vignette */
+        .bg::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at center, transparent 30%, #080c0f 100%);
+        }
+
+        /* Scanlines */
+        .scanlines {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0,0,0,.15) 2px,
+                rgba(0,0,0,.15) 4px
+            );
+            pointer-events: none;
+        }
+
+        /* ============================================================
+           CARTE PRINCIPALE
+        ============================================================ */
+        .carte {
+            position: relative;
+            z-index: 1;
+            width: 440px;
+            background: rgba(8, 14, 10, 0.97);
+            border: 1px solid rgba(0, 200, 80, 0.25);
+            border-top: 2px solid rgba(0, 200, 80, 0.6);
+            padding: 44px 40px 36px;
+            box-shadow:
+                0 0 60px rgba(0, 200, 80, 0.08),
+                0 0 0 1px rgba(0, 200, 80, 0.05) inset;
+            animation: fadeIn .6s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Coin décoratif */
+        .carte::before,
+        .carte::after {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-color: rgba(0, 200, 80, 0.5);
+            border-style: solid;
+        }
+        .carte::before { bottom: -1px; left: -1px; border-width: 0 0 2px 2px; }
+        .carte::after  { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+
+        /* ============================================================
+           LOGO
+        ============================================================ */
+        .logo {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+
+        .logo-badge {
+            display: inline-block;
+            width: 56px;
+            height: 56px;
+            border: 2px solid rgba(0, 200, 80, 0.4);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 14px;
+            font-size: 1.6em;
+            box-shadow: 0 0 20px rgba(0, 200, 80, 0.2);
+        }
+
+        .logo h1 {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 2.4em;
+            font-weight: 700;
+            color: #00c850;
+            letter-spacing: 10px;
+            text-transform: uppercase;
+            text-shadow: 0 0 30px rgba(0, 200, 80, 0.4);
+        }
+
+        .logo p {
+            color: #2a4a35;
+            font-size: 0.7em;
+            letter-spacing: 4px;
+            margin-top: 5px;
+            text-transform: uppercase;
+        }
+
+        /* ============================================================
+           ONGLETS
+        ============================================================ */
+        .tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-bottom: 1px solid rgba(0, 200, 80, 0.15);
+            gap: 4px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 10px;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            color: #2a4a35;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.78em;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all .25s;
+        }
+
+        .tab:hover  { color: #5a9a65; }
+
+        .tab.active {
+            color: #00c850;
+            border-bottom-color: #00c850;
+            text-shadow: 0 0 12px rgba(0, 200, 80, 0.4);
+        }
+
+        /* ============================================================
+           FORMULAIRES
+        ============================================================ */
+        .form-panel         { display: none; }
+        .form-panel.active  { display: block; }
+
+        .form-group { margin-bottom: 20px; }
+
+        label {
+            display: block;
+            color: #2a6a3a;
+            font-size: 0.68em;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 14px;
+            background: rgba(0, 200, 80, 0.03);
+            border: 1px solid rgba(0, 200, 80, 0.15);
+            border-left: 2px solid rgba(0, 200, 80, 0.3);
+            color: #00c850;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.9em;
+            outline: none;
+            transition: all .25s;
+        }
+
+        input:focus {
+            background: rgba(0, 200, 80, 0.06);
+            border-color: rgba(0, 200, 80, 0.5);
+            border-left-color: #00c850;
+            box-shadow: 0 0 16px rgba(0, 200, 80, 0.1);
+        }
+
+        input::placeholder { color: #1a3a25; }
+
+        /* ============================================================
+           BOUTON
+        ============================================================ */
+        .btn {
+            width: 100%;
+            padding: 14px;
+            margin-top: 6px;
+            background: rgba(0, 200, 80, 0.08);
+            border: 1px solid rgba(0, 200, 80, 0.4);
+            color: #00c850;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1em;
+            font-weight: 600;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all .25s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(0,200,80,.1), transparent);
+            transform: translateX(-100%);
+            transition: transform .4s;
+        }
+
+        .btn:hover { 
+            background: rgba(0, 200, 80, 0.15);
+            box-shadow: 0 0 24px rgba(0, 200, 80, 0.2);
+        }
+
+        .btn:hover::before { transform: translateX(100%); }
+        .btn:active { transform: scale(.98); }
+
+        /* ============================================================
+           MESSAGE FEEDBACK
+        ============================================================ */
+        .message {
+            margin-top: 16px;
+            padding: 11px 14px;
+            font-size: 0.78em;
+            letter-spacing: 1px;
+            display: none;
+            border-left: 3px solid;
+        }
+
+        .message.succes {
+            background: rgba(0, 200, 80, 0.07);
+            border-color: #00c850;
+            color: #00c850;
+        }
+
+        .message.erreur {
+            background: rgba(255, 60, 60, 0.07);
+            border-color: #ff3c3c;
+            color: #ff6666;
+        }
+
+        /* ============================================================
+           PIED DE CARTE
+        ============================================================ */
+        .footer {
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(0, 200, 80, 0.08);
+            display: flex;
+            justify-content: space-between;
+            color: #1a3a25;
+            font-size: 0.65em;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Fond -->
+    <div class="bg"></div>
+    <div class="scanlines"></div>
+
+    <!-- Carte -->
+    <div class="carte">
+
+        <!-- Logo -->
+        <div class="logo">
+            <div class="logo-badge">⚔</div>
+            <h1>WARZONE</h1>
+            <p>Tactical Strategy Online</p>
+        </div>
+
+        <!-- Onglets -->
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('connexion', this)">Connexion</button>
+            <button class="tab" onclick="showTab('inscription', this)">Inscription</button>
+        </div>
+
+        <!-- Connexion -->
+        <div class="form-panel active" id="panel-connexion">
+            <div class="form-group">
+                <label>Adresse email</label>
+                <input type="email" id="login-email" placeholder="agent@warzone.com">
+            </div>
+            <div class="form-group">
+                <label>Mot de passe</label>
+                <input type="password" id="login-mdp" placeholder="••••••••"
+                    onkeydown="if(event.key==='Enter') connexion()">
+            </div>
+            <button class="btn" onclick="connexion()">▶ Accéder au commandement</button>
+        </div>
+
+        <!-- Inscription -->
+        <div class="form-panel" id="panel-inscription">
+            <div class="form-group">
+                <label>Nom de code</label>
+                <input type="text" id="reg-pseudo" placeholder="CommanderX">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="reg-email" placeholder="agent@warzone.com">
+            </div>
+            <div class="form-group">
+                <label>Mot de passe</label>
+                <input type="password" id="reg-mdp" placeholder="••••••••"
+                    onkeydown="if(event.key==='Enter') inscription()">
+            </div>
+            <button class="btn" onclick="inscription()">▶ Rejoindre les forces</button>
+        </div>
+
+        <!-- Vérification email -->
+        <div class="form-panel" id="panel-verification">
+            <p style="color:#5a8a65;font-size:0.8em;letter-spacing:1px;margin-bottom:20px;">
+                Un code à 6 chiffres a été envoyé à<br>
+                <span id="verif-email-affiche" style="color:#00c850;"></span>
+            </p>
+            <div class="form-group">
+                <label>Code de vérification</label>
+                <input type="text" id="verif-code" placeholder="123456" maxlength="6"
+                    inputmode="numeric" pattern="[0-9]*"
+                    style="text-align:center;font-size:1.4em;letter-spacing:8px;"
+                    onkeydown="if(event.key==='Enter') verifierCode()">
+            </div>
+            <button class="btn" onclick="verifierCode()">▶ Confirmer le code</button>
+            <button class="btn" onclick="renvoyerCode()"
+                style="margin-top:8px;background:none;border-color:rgba(0,200,80,0.2);color:#2a6a3a;font-size:0.8em;">
+                ↺ Renvoyer un code
+            </button>
+        </div>
+
+        <!-- Message -->
+        <div class="message" id="message"></div>
+
+        <!-- Pied -->
+        <div class="footer">
+            <span>SYS v1.0.0</span>
+            <span>CONNEXION SÉCURISÉE</span>
+            <span id="heure">--:--:--</span>
+        </div>
+
+    </div>
+
+    <script src="/js/login.js"></script>
+    <script>
+        // Horloge en temps réel
+        function majHeure() {
+            document.getElementById('heure').textContent =
+                new Date().toLocaleTimeString('fr-FR');
+        }
+        majHeure();
+        setInterval(majHeure, 1000);
+    </script>
+</body>
+</html>

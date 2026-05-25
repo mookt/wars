@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"c:\\\\monjeu\" -Recurse -Filter \"*.js\" -ErrorAction SilentlyContinue)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Get-ChildItem -Path \"c:\\\\monjeu\" -Recurse -Filter \"*.ts\" -ErrorAction SilentlyContinue)",
+      "PowerShell(head -30)",
+      "Bash(Select-Object -First 20)",
+      "Bash(Get-ChildItem -Path \"c:\\\\monjeu\" -Recurse -File -Include \"*.js\", \"*.sql\" -ErrorAction SilentlyContinue)",
+      "Bash(Select-Object FullName)",
+      "PowerShell(Get-ChildItem -Path \"c:\\\\monjeu\" -Directory | Where-Object { $_.Name -ne \"node_modules\" })"
+    ]
+  }
+}

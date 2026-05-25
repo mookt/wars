@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>WarZone — Ma Base</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #080c0f;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        #base-canvas { position: fixed; top: 0; left: 0; display: block; }
+
+        /* ── HUD ── */
+        #hud {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 46px;
+            z-index: 100;
+            background: rgba(4,8,6,0.93);
+            border-bottom: 1px solid rgba(0,200,80,0.2);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 20px;
+            backdrop-filter: blur(8px);
+        }
+
+        .btn-retour {
+            padding: 6px 14px;
+            background: rgba(0,200,80,0.08);
+            border: 1px solid rgba(0,200,80,0.3);
+            color: #00c850;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.7em;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all .2s;
+        }
+        .btn-retour:hover { background: rgba(0,200,80,0.18); }
+
+        .hud-logo {
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            font-size: 1.1em;
+            color: #00c850;
+            letter-spacing: 4px;
+            text-shadow: 0 0 16px rgba(0,200,80,0.5);
+        }
+
+        .hud-sep { width: 1px; height: 24px; background: rgba(0,200,80,0.15); }
+        .hud-stat { display: flex; flex-direction: column; gap: 1px; }
+        .hud-label { font-size: 0.52em; color: #2a6a3a; letter-spacing: 2px; text-transform: uppercase; }
+        .hud-val   { font-size: 0.8em; color: #00c850; letter-spacing: 1px; }
+        .hud-infos { display: flex; align-items: center; gap: 16px; flex: 1; }
+
+        /* ── PANNEAU GESTION ── */
+        #panneau {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            z-index: 100;
+            background: rgba(4,8,6,0.95);
+            border-top: 1px solid rgba(0,200,80,0.2);
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            backdrop-filter: blur(8px);
+        }
+
+        .panneau-titre {
+            font-size: 0.6em;
+            color: #2a6a3a;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .panneau-section {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .panneau-val {
+            font-size: 0.8em;
+            color: #00c850;
+            letter-spacing: 2px;
+        }
+
+        /* ── BOUTON UPGRADE ── */
+        .btn-upgrade {
+            padding: 14px 32px;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            font-size: 1em;
+            letter-spacing: 3px;
+            cursor: pointer;
+            border: 2px solid;
+            transition: all .2s;
+            text-transform: uppercase;
+        }
+
+        .btn-upgrade.normal {
+            background: rgba(220,170,0,0.25);
+            border-color: #e6b800;
+            color: #ffe066;
+            box-shadow: 0 0 14px rgba(220,170,0,0.4), inset 0 0 8px rgba(220,170,0,0.1);
+        }
+        .btn-upgrade.normal:hover {
+            background: rgba(220,170,0,0.45);
+            box-shadow: 0 0 22px rgba(220,170,0,0.7), inset 0 0 12px rgba(220,170,0,0.2);
+        }
+
+        .btn-upgrade.beton {
+            background: rgba(0,200,80,0.20);
+            border-color: #00c850;
+            color: #00ff88;
+            box-shadow: 0 0 14px rgba(0,200,80,0.4), inset 0 0 8px rgba(0,200,80,0.1);
+        }
+        .btn-upgrade.beton:hover {
+            background: rgba(0,200,80,0.38);
+            box-shadow: 0 0 22px rgba(0,200,80,0.7), inset 0 0 12px rgba(0,200,80,0.2);
+        }
+
+        .statut-mur {
+            font-size: 0.78em;
+            letter-spacing: 2px;
+            padding: 5px 12px;
+            border: 1px solid;
+        }
+
+        .statut-mur.normal { color: #ffe066; border-color: rgba(220,170,0,0.5); }
+        .statut-mur.beton  { color: #00ff88; border-color: rgba(0,200,80,0.5);  }
+
+        /* ── ONGLETS PANNEAU ── */
+        #panneau-tabs {
+            display: flex;
+            gap: 4px;
+            margin-right: 16px;
+            border-right: 1px solid rgba(0,200,80,0.15);
+            padding-right: 16px;
+        }
+
+        .panneau-tab {
+            padding: 6px 14px;
+            background: none;
+            border: 1px solid rgba(0,200,80,0.15);
+            color: #2a6a3a;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.65em;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all .2s;
+        }
+        .panneau-tab:hover  { color: #5a9a65; border-color: rgba(0,200,80,0.3); }
+        .panneau-tab.active { color: #00c850; border-color: #00c850; background: rgba(0,200,80,0.06); }
+
+        .panneau-content { display: none; align-items: center; gap: 32px; flex: 1; }
+        .panneau-content.active { display: flex; }
+
+        /* ── CARTE UNITÉ ── */
+        .unite-carte {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: rgba(0,200,80,0.04);
+            border: 1px solid rgba(0,200,80,0.15);
+            border-left: 2px solid rgba(0,200,80,0.4);
+            padding: 10px 18px;
+        }
+
+        .unite-nom {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.1em;
+            font-weight: 700;
+            color: #00c850;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        .unite-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            font-size: 0.65em;
+            color: #2a6a3a;
+            letter-spacing: 1px;
+        }
+
+        .unite-stats span { color: #5a9a65; }
+
+        .unite-cout {
+            font-size: 0.7em;
+            color: #5a9a65;
+            letter-spacing: 1px;
+        }
+
+        .btn-construire {
+            padding: 10px 20px;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            font-size: 0.9em;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            background: rgba(0,200,80,0.08);
+            border: 1px solid rgba(0,200,80,0.4);
+            color: #00c850;
+            cursor: pointer;
+            transition: all .2s;
+            white-space: nowrap;
+        }
+        .btn-construire:hover { background: rgba(0,200,80,0.2); box-shadow: 0 0 14px rgba(0,200,80,0.2); }
+        .btn-construire:disabled { opacity: 0.4; cursor: default; }
+
+        #msg-sam {
+            font-size: 0.72em;
+            letter-spacing: 1px;
+            padding: 6px 12px;
+            border-left: 2px solid;
+            display: none;
+        }
+        #msg-sam.succes { color: #00c850; border-color: #00c850; background: rgba(0,200,80,0.06); }
+        #msg-sam.erreur { color: #ff6666; border-color: #ff3c3c; background: rgba(255,60,60,0.06); }
+    </style>
+</head>
+<body>
+
+    <!-- HUD -->
+    <div id="hud">
+        <button class="btn-retour" onclick="window.location.href='/jeu.html'">◄ CARTE</button>
+        <div class="hud-logo">⚔ WARZONE</div>
+        <div class="hud-infos">
+            <div class="hud-stat">
+                <span class="hud-label">Commandant</span>
+                <span class="hud-val" id="hud-pseudo">—</span>
+            </div>
+            <div class="hud-sep"></div>
+            <div class="hud-stat">
+                <span class="hud-label">Points</span>
+                <span class="hud-val" id="hud-points">0</span>
+            </div>
+        </div>
+    </div>
+
+    <canvas id="base-canvas"></canvas>
+
+    <!-- Panneau de gestion -->
+    <div id="panneau">
+
+        <!-- Onglets -->
+        <div id="panneau-tabs">
+            <button class="panneau-tab active" onclick="showPanneauTab('defenses', this)">Défenses</button>
+            <button class="panneau-tab"        onclick="showPanneauTab('troupes',  this)">Troupes</button>
+        </div>
+
+        <!-- Contenu : Défenses -->
+        <div class="panneau-content active" id="tab-defenses">
+            <div class="panneau-section">
+                <div class="panneau-titre">Statut actuel</div>
+                <div class="statut-mur normal" id="statut-mur">TERRE / STANDARD</div>
+            </div>
+            <button class="btn-upgrade normal" id="btn-upgrade" onclick="toggleMurs()">
+                ⬆ BÉTONNER LES MURS
+            </button>
+        </div>
+
+        <!-- Contenu : Troupes -->
+        <div class="panneau-content" id="tab-troupes">
+            <div class="unite-carte">
+                <div>
+                    <div class="unite-nom">SAM</div>
+                    <div class="unite-stats">
+                        <div>PV <span>800</span> &nbsp;|&nbsp; ATQ <span>15</span> &nbsp;|&nbsp; PORTÉE <span>350</span></div>
+                        <div>VITESSE <span>2</span> &nbsp;|&nbsp; CONSTRUCTION <span>8s</span></div>
+                    </div>
+                    <div class="unite-cout" style="margin-top:6px;">
+                        Coût : <span style="color:#00c850" id="cout-sam-acier">—</span> acier &nbsp;+&nbsp;
+                               <span style="color:#00c850" id="cout-sam-charbon">—</span> charbon
+                    </div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;">
+                    <button class="btn-construire" id="btn-sam" onclick="construireSam()">▶ RECRUTER</button>
+                    <div id="msg-sam"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+<script src="/js/constantes.js"></script>
+<script>
+// ============================================================
+//  SESSION
+// ============================================================
+const token     = localStorage.getItem('token');
+const joueur_id = localStorage.getItem('joueur_id');
+const pseudo    = localStorage.getItem('pseudo');
+
+if (!token || !joueur_id) window.location.href = '/index.html';
+document.getElementById('hud-pseudo').textContent = pseudo || '—';
+
+// ============================================================
+//  ONGLETS PANNEAU
+// ============================================================
+function showPanneauTab(nom, btn) {
+    document.querySelectorAll('.panneau-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panneau-content').forEach(c => c.classList.remove('active'));
+    document.getElementById(`tab-${nom}`).classList.add('active');
+    btn.classList.add('active');
+}
+
+// Affiche le coût Sam dès que VEHICULES est disponible
+window.addEventListener('DOMContentLoaded', () => {
+    if (typeof VEHICULES !== 'undefined' && VEHICULES.sam) {
+        document.getElementById('cout-sam-acier').textContent   = VEHICULES.sam.cout_acier;
+        document.getElementById('cout-sam-charbon').textContent = VEHICULES.sam.cout_charbon;
+    }
+});
+
+// ============================================================
+//  ÉTAT MURS (persisté en base de données)
+// ============================================================
+let mursBeton = false;
+
+async function toggleMurs() {
+    const nouvelEtat = !mursBeton;
+    mursBeton = nouvelEtat;
+    mettreAJourUI();
+    try {
+        const res = await fetch(`/api/joueur/${joueur_id}/murs`, {
+            method: 'PATCH',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ murs_beton: nouvelEtat })
+        });
+        if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            console.error('PATCH murs échoué :', res.status, data);
+            // Annule le changement local si le serveur refuse
+            mursBeton = !nouvelEtat;
+            mettreAJourUI();
+        }
+    } catch (e) {
+        console.error('Erreur réseau murs :', e);
+        mursBeton = !nouvelEtat;
+        mettreAJourUI();
+    }
+}
+
+async function chargerEtatMurs() {
+    try {
+        const res = await fetch('/api/joueur/bases');
+        if (res.ok) {
+            const bases = await res.json();
+            const maBase = bases.find(b => String(b.joueur_id) === String(joueur_id));
+            if (maBase) mursBeton = !!maBase.murs_beton;
+        }
+    } catch (e) {}
+    mettreAJourUI();
+}
+
+function mettreAJourUI() {
+    const btn    = document.getElementById('btn-upgrade');
+    const statut = document.getElementById('statut-mur');
+
+    if (mursBeton) {
+        btn.textContent  = '↩ RETOUR MURS STANDARD';
+        btn.className    = 'btn-upgrade beton';
+        statut.textContent = 'BÉTON ARMÉ';
+        statut.className   = 'statut-mur beton';
+    } else {
+        btn.textContent  = '⬆ BÉTONNER LES MURS';
+        btn.className    = 'btn-upgrade normal';
+        statut.textContent = 'TERRE / STANDARD';
+        statut.className   = 'statut-mur normal';
+    }
+}
+
+chargerEtatMurs();
+
+// ============================================================
+//  CANVAS
+// ============================================================
+const canvas = document.getElementById('base-canvas');
+const ctx    = canvas.getContext('2d');
+
+function resize() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+// ============================================================
+//  IMAGES
+// ============================================================
+const imgFond      = new Image(); imgFond.src      = '/image.png';
+const imgBase      = new Image(); imgBase.src      = '/assets/bases/base1.png';
+const imgMur1      = new Image(); imgMur1.src      = '/assets/bases/mur1.png';
+const imgMur2      = new Image(); imgMur2.src      = '/assets/bases/mur2.png';
+const imgMur1Beton = new Image(); imgMur1Beton.src = '/assets/bases/mur1Beton.png';
+const imgMur2Beton = new Image(); imgMur2Beton.src = '/assets/bases/mur2Beton.png';
+
+// ============================================================
+//  RENDU
+// ============================================================
+function dessiner() {
+    const W = canvas.width, H = canvas.height;
+    const sx = W / 2, sy = H / 2;
+
+    // Fond tuilé (même texture que la carte)
+    if (imgFond.complete && imgFond.naturalWidth > 0) {
+        const pattern = ctx.createPattern(imgFond, 'repeat');
+        ctx.fillStyle = pattern;
+        ctx.fillRect(0, 0, W, H);
+    } else {
+        ctx.fillStyle = '#8a7848';
+        ctx.fillRect(0, 0, W, H);
+    }
+
+    // Intérieur de la base
+    if (imgBase.complete && imgBase.naturalWidth > 0) {
+        const bw = imgBase.naturalWidth, bh = imgBase.naturalHeight;
+        ctx.drawImage(imgBase, sx - bw / 2, sy - bh / 2, bw, bh);
+    }
+
+    // Murs (normal ou béton)
+    const src1 = (mursBeton && imgMur1Beton.complete && imgMur1Beton.naturalWidth > 0) ? imgMur1Beton : imgMur1;
+    const src2 = (mursBeton && imgMur2Beton.complete && imgMur2Beton.naturalWidth > 0) ? imgMur2Beton : imgMur2;
+
+    if (src1.complete && src1.naturalWidth > 0) {
+        const mw = src1.naturalWidth, mh = src1.naturalHeight;
+        ctx.drawImage(src1, sx - mw / 2 - 550, sy - mh / 2 + 50, mw, mh);
+    }
+    if (src2.complete && src2.naturalWidth > 0) {
+        const mw = src2.naturalWidth, mh = src2.naturalHeight;
+        ctx.drawImage(src2, sx - mw / 2 - 150, sy - mh / 2 + 200, mw, mh);
+    }
+
+    requestAnimationFrame(dessiner);
+}
+
+// ============================================================
+//  RECRUTEMENT SAM
+// ============================================================
+function msgSam(texte, type) {
+    const el = document.getElementById('msg-sam');
+    el.textContent = texte;
+    el.className   = type;
+    el.style.display = 'block';
+    setTimeout(() => { el.style.display = 'none'; }, 3000);
+}
+
+async function construireSam() {
+    const btn = document.getElementById('btn-sam');
+    btn.disabled = true;
+    try {
+        const res  = await fetch(`/api/joueur/${joueur_id}/sam/construire`, {
+            method: 'PATCH',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+        if (res.ok) msgSam('Sam en cours de construction !', 'succes');
+        else        msgSam(data.erreur, 'erreur');
+    } catch (e) {
+        msgSam('Erreur réseau', 'erreur');
+    }
+    btn.disabled = false;
+}
+
+// Charge les points du joueur
+fetch(`/api/joueur/${joueur_id}`, { headers: { 'Authorization': `Bearer ${token}` } })
+    .then(r => r.ok ? r.json() : null)
+    .then(j => { if (j) document.getElementById('hud-points').textContent = j.points || 0; })
+    .catch(() => {});
+
+dessiner();
+</script>
+</body>
+</html>
