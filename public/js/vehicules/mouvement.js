@@ -755,6 +755,24 @@ function animerVehicules() {
         });
     });
 
+    // Broadcast temps-réel : envoyer la position de chaque véhicule en mouvement
+    {
+        const _t = Date.now();
+        if (!animerVehicules._lastSync || _t - animerVehicules._lastSync > 150) {
+            animerVehicules._lastSync = _t;
+            const positions = [];
+            bases.forEach(b => {
+                if (!b.vehicules || b.joueur_id != joueur_id) return;
+                b.vehicules.forEach(v => {
+                    if (v.construit && v.cur_x != null && !v._reachedDest)
+                        positions.push({ id: v.id, x: Math.round(v.cur_x), y: Math.round(v.cur_y) });
+                });
+            });
+            if (positions.length > 0 && typeof socket !== 'undefined')
+                socket.emit('pos_sync', positions);
+        }
+    }
+
     // ── Gestion des groupes du joueur (solo, pending, auto-merge) ──
     // Toutes les bases du joueur (principale + capturées)
     const mesBasesJ = bases.filter(b => b.joueur_id == joueur_id);

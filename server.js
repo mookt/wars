@@ -69,6 +69,10 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         console.log('🔴 Joueur déconnecté :', socket.id);
     });
+    // Relay temps-réel des positions véhicules (client → tous les autres)
+    socket.on('pos_sync', (data) => {
+        socket.broadcast.emit('pos_sync', data);
+    });
 });
 
 // --- Base neutre (fortification sans joueur) ---

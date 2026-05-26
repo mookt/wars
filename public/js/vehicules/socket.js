@@ -85,6 +85,21 @@ socket.on('vehicle_built', ({ joueur_id: jid, id, type, x, y, construction_fin }
     if (!isBuilt) planifierActivation(veh);
 });
 
+// Positions temps-réel envoyées par les autres joueurs (~150ms)
+socket.on('pos_sync', (positions) => {
+    if (!Array.isArray(positions)) return;
+    for (const { id, x, y } of positions) {
+        for (const b of bases) {
+            if (!b.vehicules || b.joueur_id == joueur_id) continue;
+            const veh = b.vehicules.find(v => v.id === id);
+            if (veh && veh.construit && veh.cur_x != null) {
+                veh.cur_x = x;
+                veh.cur_y = y;
+            }
+        }
+    }
+});
+
 socket.on('vehicle_destroyed', ({ vehicule_id }) => {
     for (const b of bases) {
         if (!b.vehicules) continue;
