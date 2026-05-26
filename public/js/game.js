@@ -60,9 +60,14 @@ async function syncTiers() {
                 if (existing) {
                     existing.x = nv.x; existing.y = nv.y;
                     if (existing.cur_x == null) { existing.cur_x = nv.x; existing.cur_y = nv.y; }
+                    if (existing.construit == null)
+                        existing.construit = (!existing.construction_fin || Date.now() >= existing.construction_fin) ? 1 : 0;
                 } else {
                     if (!base.vehicules) base.vehicules = [];
-                    base.vehicules.push({ ...nv, cur_x: nv.x, cur_y: nv.y });
+                    const newV = { ...nv, cur_x: nv.x, cur_y: nv.y };
+                    if (newV.construit == null)
+                        newV.construit = (!newV.construction_fin || Date.now() >= newV.construction_fin) ? 1 : 0;
+                    base.vehicules.push(newV);
                 }
             });
             if (base.vehicules) {

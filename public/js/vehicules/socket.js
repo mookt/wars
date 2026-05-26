@@ -62,7 +62,9 @@ socket.on('vehicle_arrived', ({ vehicule_id, x, y }) => {
         const veh = b.vehicules.find(v => v.id === vehicule_id);
         if (veh) {
             veh.x = x; veh.y = y;
-            veh.cur_x = x; veh.cur_y = y;
+            if (veh.cur_x == null || Math.hypot(veh.cur_x - x, veh.cur_y - y) < vcfg(veh).speed * 15) {
+                veh.cur_x = x; veh.cur_y = y;
+            }
             break;
         }
     }
