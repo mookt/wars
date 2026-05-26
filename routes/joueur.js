@@ -444,7 +444,7 @@ const _derniersDeplacements = {};
 
 // ── Déplacer un véhicule ──────────────────────────────────────
 router.patch('/:id/jeep/deplacer', requireAuth, (req, res) => {
-    const { x, y, vehicule_id } = req.body;
+    const { x, y, vehicule_id, from_x, from_y } = req.body;
     if (!validerCoordonnees(x, y))
         return res.status(400).json({ erreur: 'Coordonnées invalides' });
     const vid = Number(vehicule_id);
@@ -463,7 +463,7 @@ router.patch('/:id/jeep/deplacer', requireAuth, (req, res) => {
         (err, result) => {
             if (err) return res.status(500).json({ erreur: 'Erreur serveur' });
             if (result.affectedRows > 0)
-                req.app.get('io').emit('vehicle_moved', { vehicule_id: vid, x: Number(x), y: Number(y) });
+                req.app.get('io').emit('vehicle_moved', { vehicule_id: vid, x: Number(x), y: Number(y), from_x: Number(from_x), from_y: Number(from_y) });
             res.json({ ok: true });
         }
     );

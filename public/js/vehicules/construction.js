@@ -18,7 +18,7 @@ async function deplacerVehicule(base, vehicle, mapX, mapY) {
     await fetch(`/api/joueur/${joueur_id}/jeep/deplacer`, {
         method: 'PATCH',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ x: mapX, y: mapY, vehicule_id: vehicle.id })
+        body: JSON.stringify({ x: mapX, y: mapY, vehicule_id: vehicle.id, from_x: vehicle.cur_x, from_y: vehicle.cur_y })
     }).catch(() => null);
 }
 

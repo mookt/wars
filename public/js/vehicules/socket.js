@@ -1,18 +1,19 @@
 // ── Socket.io — événements véhicules ─────────────────────────
 const socket = io();
 
-socket.on('vehicle_moved', ({ vehicule_id, x, y }) => {
+socket.on('vehicle_moved', ({ vehicule_id, x, y, from_x, from_y }) => {
     for (const b of bases) {
         if (!b.vehicules) continue;
         const veh = b.vehicules.find(v => v.id === vehicule_id);
         if (veh) {
             veh.x = x; veh.y = y;
             if (b.joueur_id != joueur_id) {
+                if (isFinite(from_x) && isFinite(from_y)) {
+                    veh.cur_x = from_x;
+                    veh.cur_y = from_y;
+                }
                 veh._reachedDest = false;
-                veh._waypoints   = [];
-                veh._pfLastCalc  = 0;
-                if (veh.cur_x != null)
-                    majDirection(veh, x - veh.cur_x, y - veh.cur_y);
+                majDirection(veh, x - veh.cur_x, y - veh.cur_y);
             }
             break;
         }
