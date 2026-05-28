@@ -50,10 +50,11 @@ async function syncTiers() {
         const data = await res.json();
         data.forEach(nb => {
             if (nb.joueur_id == joueur_id) return;
-            const base = bases.find(b =>
-                b.joueur_id == nb.joueur_id ||
-                (b._neutreId != null && b._neutreId === nb._neutreId)
-            );
+            // Priorité stricte : si l'entrée API a un _neutreId, matcher uniquement par _neutreId
+            // pour éviter que la base principale (même joueur_id) soit sélectionnée à tort
+            const base = nb._neutreId != null
+                ? bases.find(b => b._neutreId != null && b._neutreId === nb._neutreId)
+                : bases.find(b => b.joueur_id == nb.joueur_id && b._neutreId == null);
             if (!base) return;
             (nb.vehicules || []).forEach(nv => {
                 const existing = (base.vehicules || []).find(v => v.id === nv.id);
@@ -73,7 +74,9 @@ async function syncTiers() {
             if (base.vehicules) {
                 const idsServeur = new Set((nb.vehicules || []).map(v => v.id));
                 base.vehicules = base.vehicules.filter(v =>
-                    typeof v.id === 'string' || idsServeur.has(v.id)
+                    typeof v.id === 'string' ||
+                    idsServeur.has(v.id) ||
+                    (v._posBuffer && v._posBuffer.length > 0) // tick en cours → ne pas supprimer
                 );
             }
         });
