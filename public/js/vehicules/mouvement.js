@@ -786,12 +786,14 @@ function animerVehicules() {
             bases.forEach(b => {
                 if (!b.vehicules || b.joueur_id != joueur_id) return;
                 b.vehicules.forEach(v => {
-                    if (v.construit && v.cur_x != null && !v._reachedDest)
-                        positions.push({ id: v.id, x: Math.round(v.cur_x), y: Math.round(v.cur_y), a: v.frameIndex ?? 0 });
+                    if (v.construit && v.cur_x != null)
+                        positions.push({ id: v.id, type: v.type, jid: Number(joueur_id),
+                                         x: Math.round(v.cur_x), y: Math.round(v.cur_y), a: v.frameIndex ?? 0 });
                 });
             });
             if (positions.length > 0 && typeof socket !== 'undefined')
                 socket.emit('owner_positions', positions);
+
         }
     }
 

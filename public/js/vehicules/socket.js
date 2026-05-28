@@ -92,10 +92,19 @@ socket.on('vehicle_built', ({ joueur_id: jid, id, type, x, y, construction_fin }
 socket.on('tick', ({ vehicles } = {}) => {
     if (!Array.isArray(vehicles)) return;
     const t = Date.now(); // timestamp local pour l'interpolation (évite le décalage d'horloge)
-    for (const { id, x, y, a } of vehicles) {
+    for (const { id, x, y, a, type, jid } of vehicles) {
         for (const b of bases) {
             if (!b.vehicules || b.joueur_id == joueur_id) continue;
-            const veh = b.vehicules.find(v => v.id === id);
+            if (jid != null && b.joueur_id != jid) continue;
+            let veh = b.vehicules.find(v => v.id === id);
+            // Auto-créer si absent (vehicle_built manqué ou race condition syncTiers)
+            if (!veh && type) {
+                veh = { id, type, x, y, cur_x: x, cur_y: y, construit: 1,
+                        groupe_id: null, formation_slot: null, construction_fin: null,
+                        pv: null, lastAttack: 0, target: null, frameIndex: a ?? 0,
+                        _reachedDest: true, _waypoints: [], _posBuffer: null };
+                b.vehicules.push(veh);
+            }
             if (veh && veh.construit && veh.cur_x != null) {
                 if (!veh._posBuffer) veh._posBuffer = [];
                 veh._posBuffer.push({ x, y, a: a ?? 0, t });
