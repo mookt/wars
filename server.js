@@ -76,7 +76,9 @@ io.on('connection', (socket) => {
         if (!Array.isArray(positions)) return;
         const now = Date.now();
         for (const { id, x, y, a } of positions) {
-            gameState.set(String(id), { x, y, a: a ?? 0, ownerId: socket.id, updatedAt: now });
+            // Garder l'id en Number pour que la comparaison === côté client fonctionne
+            const nid = Number(id);
+            gameState.set(nid, { x, y, a: a ?? 0, ownerId: socket.id, updatedAt: now });
         }
     });
 
