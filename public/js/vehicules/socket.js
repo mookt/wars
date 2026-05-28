@@ -93,28 +93,33 @@ socket.on('tick', ({ vehicles } = {}) => {
     if (!Array.isArray(vehicles)) return;
     const t = Date.now(); // timestamp local pour l'interpolation (évite le décalage d'horloge)
     for (const { id, x, y, a, type, jid, gid, slot } of vehicles) {
+        // Un véhicule appartient à UNE SEULE base — chercher puis break pour éviter les doublons
+        let found = false;
         for (const b of bases) {
             if (!b.vehicules || b.joueur_id == joueur_id) continue;
             if (jid != null && b.joueur_id != jid) continue;
-            let veh = b.vehicules.find(v => v.id === id);
-            // Auto-créer si absent (vehicle_built manqué ou race condition syncTiers)
-            if (!veh && type) {
-                veh = { id, type, x, y, cur_x: x, cur_y: y, construit: 1,
-                        groupe_id: gid ?? null, formation_slot: slot ?? null, construction_fin: null,
-                        pv: vcfg({ type }).pv_max, lastAttack: 0, target: null, frameIndex: a ?? 0,
-                        _reachedDest: true, _waypoints: [], _posBuffer: null };
-                b.vehicules.push(veh);
+            const veh = b.vehicules.find(v => v.id === id);
+            if (!veh) continue;
+            found = true;
+            if (veh.pv == null) veh.pv = vcfg(veh).pv_max;
+            if (gid != null) { veh.groupe_id = gid; veh.formation_slot = slot ?? null; }
+            if (veh.construit && veh.cur_x != null) {
+                if (!veh._posBuffer) veh._posBuffer = [];
+                veh._posBuffer.push({ x, y, a: a ?? 0, t });
+                if (veh._posBuffer.length > 30) veh._posBuffer.shift();
             }
-            if (veh) {
-                // Synchroniser pv si encore null (véhicule créé avant ce fix)
-                if (veh.pv == null) veh.pv = vcfg(veh).pv_max;
-                // Propager groupe_id / formation_slot depuis le tick
-                if (gid != null) { veh.groupe_id = gid; veh.formation_slot = slot ?? null; }
-                if (veh.construit && veh.cur_x != null) {
-                    if (!veh._posBuffer) veh._posBuffer = [];
-                    veh._posBuffer.push({ x, y, a: a ?? 0, t });
-                    if (veh._posBuffer.length > 30) veh._posBuffer.shift();
-                }
+            break;
+        }
+        // Auto-créer dans la première base correspondante uniquement
+        if (!found && type) {
+            const b = bases.find(b => b.vehicules && b.joueur_id != joueur_id &&
+                                      (jid == null || b.joueur_id == jid));
+            if (b) {
+                const veh = { id, type, x, y, cur_x: x, cur_y: y, construit: 1,
+                              groupe_id: gid ?? null, formation_slot: slot ?? null, construction_fin: null,
+                              pv: vcfg({ type }).pv_max, lastAttack: 0, target: null, frameIndex: a ?? 0,
+                              _reachedDest: true, _waypoints: [], _posBuffer: null };
+                b.vehicules.push(veh);
             }
         }
     }
