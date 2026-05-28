@@ -85,9 +85,8 @@ io.on('connection', (socket) => {
 
     socket.on('disconnect', () => {
         console.log('🔴 Joueur déconnecté :', socket.id);
-        for (const [id, v] of gameState) {
-            if (v.ownerId === socket.id) gameState.delete(id);
-        }
+        // Ne pas supprimer immédiatement : le check stale (3s) purgera proprement.
+        // Les observateurs continuent de voir les dernières positions 3s après la déconnexion.
     });
 });
 

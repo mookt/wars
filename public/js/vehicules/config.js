@@ -102,7 +102,8 @@ function majDirection(vehicle, vx, vy, rate = TURN_RATE) {
 }
 
 function getVehicleScreenPos(vehicle) {
-    if (!vehicle.construit && !vehicle.explosion) return null;
+    // Afficher : véhicule construit, explosion, ou en construction avec position connue
+    if (!vehicle.construit && !vehicle.explosion && vehicle.cur_x == null) return null;
     // cur_x est la position réelle affichée ; x est la cible (peut être NaN temporairement)
     const cx = isFinite(vehicle.cur_x) ? vehicle.cur_x : (isFinite(vehicle.x) ? vehicle.x : null);
     const cy = isFinite(vehicle.cur_y) ? vehicle.cur_y : (isFinite(vehicle.y) ? vehicle.y : null);

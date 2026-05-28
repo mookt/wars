@@ -211,7 +211,10 @@ function dessinerVehicules() {
             const frameX = (frame % VEHICLE_SPRITE_COLS) * frameWidth;
             const frameY = Math.floor(frame / VEHICLE_SPRITE_COLS) * frameHeight;
 
-
+            // En construction : semi-transparent + pulsation lente
+            if (!vehicle.construit) {
+                ctx.globalAlpha = 0.35 + 0.2 * Math.abs(Math.sin(now / 600));
+            }
             ctx.drawImage(img, frameX, frameY, frameWidth, frameHeight, sx - dw / 2, sy - dh / 2, dw, dh);
 
             const mitraImg = vehicle.type === 'jeep' ? imgMitraJeep : vehicle.type === 'humvet' ? imgMitraHumvet : null;
@@ -293,14 +296,17 @@ function dessinerVehicules() {
                 }
             }
 
-            const pvMax = vcfg(vehicle).pv_max;
-            if (vehicle.pv < pvMax) {
-                const barW = dw * 0.8, barH = 4;
-                const barX = sx - barW / 2, barY = sy - dh / 2 - 8;
-                ctx.fillStyle = 'rgba(255,0,0,0.8)';
-                ctx.fillRect(barX, barY, barW, barH);
-                ctx.fillStyle = 'rgba(0,255,0,0.8)';
-                ctx.fillRect(barX, barY, barW * (vehicle.pv / pvMax), barH);
+            ctx.globalAlpha = 1;
+            if (vehicle.construit) {
+                const pvMax = vcfg(vehicle).pv_max;
+                if (vehicle.pv < pvMax) {
+                    const barW = dw * 0.8, barH = 4;
+                    const barX = sx - barW / 2, barY = sy - dh / 2 - 8;
+                    ctx.fillStyle = 'rgba(255,0,0,0.8)';
+                    ctx.fillRect(barX, barY, barW, barH);
+                    ctx.fillStyle = 'rgba(0,255,0,0.8)';
+                    ctx.fillRect(barX, barY, barW * (vehicle.pv / pvMax), barH);
+                }
             }
         });
     });

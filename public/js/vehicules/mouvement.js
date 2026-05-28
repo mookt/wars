@@ -143,8 +143,21 @@ function animerVehicules() {
             const p0 = buf[lo], p1 = buf[lo + 1];
 
             if (renderTime >= p1.t) {
-                // renderTime dépasse toutes les entrées : tenir la dernière position
-                v.cur_x = p1.x; v.cur_y = p1.y; v.frameIndex = p1.a;
+                const staleness = renderTime - p1.t;
+                if (staleness > 500 && v.x != null && isFinite(v.x)) {
+                    // Owner hors ligne : glisser vers la dernière destination connue
+                    const dx = v.x - v.cur_x, dy = v.y - v.cur_y;
+                    const dist = Math.hypot(dx, dy);
+                    if (dist > 1) {
+                        const sp = vcfg(v).speed;
+                        v.cur_x += (dx / dist) * Math.min(dist, sp);
+                        v.cur_y += (dy / dist) * Math.min(dist, sp);
+                        majDirection(v, dx, dy);
+                    }
+                } else {
+                    // renderTime dépasse toutes les entrées : tenir la dernière position
+                    v.cur_x = p1.x; v.cur_y = p1.y; v.frameIndex = p1.a;
+                }
             } else {
                 const dt    = p1.t - p0.t;
                 const alpha = dt > 0 ? Math.max(0, Math.min(1, (renderTime - p0.t) / dt)) : 1;
