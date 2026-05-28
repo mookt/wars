@@ -788,7 +788,8 @@ function animerVehicules() {
                 b.vehicules.forEach(v => {
                     if (v.construit && v.cur_x != null)
                         positions.push({ id: v.id, type: v.type, jid: Number(joueur_id),
-                                         x: Math.round(v.cur_x), y: Math.round(v.cur_y), a: v.frameIndex ?? 0 });
+                                         x: Math.round(v.cur_x), y: Math.round(v.cur_y), a: v.frameIndex ?? 0,
+                                         gid: v.groupe_id ?? null, slot: v.formation_slot ?? null });
                 });
             });
             if (positions.length > 0 && typeof socket !== 'undefined')

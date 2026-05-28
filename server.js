@@ -75,10 +75,11 @@ io.on('connection', (socket) => {
     socket.on('owner_positions', (positions) => {
         if (!Array.isArray(positions)) return;
         const now = Date.now();
-        for (const { id, x, y, a, type, jid } of positions) {
+        for (const { id, x, y, a, type, jid, gid, slot } of positions) {
             // Garder l'id en Number pour que la comparaison === côté client fonctionne
             const nid = Number(id);
-            gameState.set(nid, { x, y, a: a ?? 0, type: type ?? null, jid: jid ?? null, ownerId: socket.id, updatedAt: now });
+            gameState.set(nid, { x, y, a: a ?? 0, type: type ?? null, jid: jid ?? null,
+                                  gid: gid ?? null, slot: slot ?? null, ownerId: socket.id, updatedAt: now });
         }
     });
 
@@ -97,7 +98,7 @@ setInterval(() => {
     const snapshot = [];
     for (const [id, v] of gameState) {
         if (now - v.updatedAt > 3000) { gameState.delete(id); continue; } // stale → purge
-        snapshot.push({ id, x: v.x, y: v.y, a: v.a, type: v.type, jid: v.jid });
+        snapshot.push({ id, x: v.x, y: v.y, a: v.a, type: v.type, jid: v.jid, gid: v.gid, slot: v.slot });
     }
     if (snapshot.length > 0) io.emit('tick', { t: now, vehicles: snapshot });
 }, 50);
