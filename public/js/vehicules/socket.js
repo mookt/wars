@@ -8,12 +8,13 @@ socket.on('vehicle_moved', ({ vehicule_id, x, y, from_x, from_y }) => {
         if (veh) {
             veh.x = x; veh.y = y;
             if (b.joueur_id != joueur_id) {
-                if (isFinite(from_x) && isFinite(from_y)) {
-                    veh.cur_x = from_x;
-                    veh.cur_y = from_y;
-                }
+                const sx = isFinite(from_x) ? from_x : veh.cur_x;
+                const sy = isFinite(from_y) ? from_y : veh.cur_y;
+                veh.cur_x = sx; veh.cur_y = sy;
+                // Réinitialiser le buffer au point de départ (une seule entrée pour l'instant)
+                veh._posBuffer = [{ x: sx, y: sy, a: veh.frameIndex ?? 0, t: Date.now() }];
                 veh._reachedDest = false;
-                majDirection(veh, x - veh.cur_x, y - veh.cur_y);
+                majDirection(veh, x - sx, y - sy);
             }
             break;
         }
@@ -30,16 +31,13 @@ socket.on('base_capturee', ({ base_id, joueur_id: captureur, pseudo, sams }) => 
         if (pseudo) base.pseudo = pseudo;
 
         if (sams && sams.length > 0) {
-            // Remplacer les SAMs existants par ceux reçus du serveur (rechargement complet)
             if (!base.vehicules) base.vehicules = [];
             base.vehicules = base.vehicules.filter(v => v.type !== 'sam');
             base.vehicules.push(...sams);
         } else {
-            // Fallback : juste restaurer les PVs si les SAMs sont déjà dans le tableau
             base.vehicules?.forEach(v => { if (v.type === 'sam') v.pv = 800; });
         }
 
-        // Marquer que cette base a des SAMs (pour la détection de perte)
         if (base.vehicules?.some(v => v.type === 'sam')) base._avaitSams = true;
     }
 });
@@ -62,7 +60,11 @@ socket.on('vehicle_arrived', ({ vehicule_id, x, y }) => {
         const veh = b.vehicules.find(v => v.id === vehicule_id);
         if (veh) {
             veh.x = x; veh.y = y;
-            if (veh.cur_x == null || Math.hypot(veh.cur_x - x, veh.cur_y - y) < vcfg(veh).speed * 15) {
+            // Ajouter la position finale au buffer pour que l'interpolation finisse en douceur
+            if (veh._posBuffer) {
+                veh._posBuffer.push({ x, y, a: veh.frameIndex ?? 0, t: Date.now() });
+                if (veh._posBuffer.length > 30) veh._posBuffer.shift();
+            } else if (veh.cur_x == null || Math.hypot(veh.cur_x - x, veh.cur_y - y) < vcfg(veh).speed * 15) {
                 veh.cur_x = x; veh.cur_y = y;
             }
             break;
@@ -80,21 +82,24 @@ socket.on('vehicle_built', ({ joueur_id: jid, id, type, x, y, construction_fin }
     const veh = { id, type, x, y, cur_x: x, cur_y: y, groupe_id: null, formation_slot: null,
                   construction_fin, construit: isBuilt ? 1 : 0,
                   pv: null, lastAttack: 0, target: null, frameIndex: 0,
-                  _reachedDest: true, _waypoints: [] };
+                  _reachedDest: true, _waypoints: [], _posBuffer: null };
     base.vehicules.push(veh);
     if (!isBuilt) planifierActivation(veh);
 });
 
-// Positions temps-réel envoyées par les autres joueurs (~150ms)
-socket.on('pos_sync', (positions) => {
-    if (!Array.isArray(positions)) return;
-    for (const { id, x, y } of positions) {
+// Tick autoritaire du serveur (50ms) : même snapshot pour TOUS les clients en même temps
+// Le serveur est la source unique → zéro divergence entre observateurs
+socket.on('tick', ({ vehicles } = {}) => {
+    if (!Array.isArray(vehicles)) return;
+    const t = Date.now(); // timestamp local pour l'interpolation (évite le décalage d'horloge)
+    for (const { id, x, y, a } of vehicles) {
         for (const b of bases) {
             if (!b.vehicules || b.joueur_id == joueur_id) continue;
             const veh = b.vehicules.find(v => v.id === id);
             if (veh && veh.construit && veh.cur_x != null) {
-                veh.cur_x = x;
-                veh.cur_y = y;
+                if (!veh._posBuffer) veh._posBuffer = [];
+                veh._posBuffer.push({ x, y, a: a ?? 0, t });
+                if (veh._posBuffer.length > 30) veh._posBuffer.shift();
             }
         }
     }
@@ -107,7 +112,6 @@ socket.on('vehicle_destroyed', ({ vehicule_id }) => {
         if (veh) {
             demarrerExplosion(veh);
             jouerSonExplosion();
-            // Si c'est mon propre véhicule, s'assurer qu'il est supprimé de la DB
             if (b.joueur_id == joueur_id) {
                 fetch(`/api/joueur/${joueur_id}/vehicule/${vehicule_id}/supprimer`, {
                     method: 'DELETE',

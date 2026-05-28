@@ -63,17 +63,42 @@ app.use('/api/joueur', charbonRoutes);
 app.use('/api/joueur', carburantRoutes);
 app.use('/api/joueur', titaniumRoutes);
 
-// --- Socket.IO ---
+// --- Socket.IO — Serveur autoritaire ---
+// Les owners envoient leurs positions → serveur stocke → tick broadcast à TOUS simultanément
+// Tous les observateurs reçoivent exactement les mêmes données au même moment → zéro divergence
+const gameState = new Map(); // String(vehicleId) → { x, y, a, ownerId, updatedAt }
+
 io.on('connection', (socket) => {
     console.log('🟢 Joueur connecté :', socket.id);
+
+    // Owner envoie ses positions courantes (~50ms, uniquement pendant le mouvement)
+    socket.on('owner_positions', (positions) => {
+        if (!Array.isArray(positions)) return;
+        const now = Date.now();
+        for (const { id, x, y, a } of positions) {
+            gameState.set(String(id), { x, y, a: a ?? 0, ownerId: socket.id, updatedAt: now });
+        }
+    });
+
     socket.on('disconnect', () => {
         console.log('🔴 Joueur déconnecté :', socket.id);
-    });
-    // Relay temps-réel des positions véhicules (client → tous les autres)
-    socket.on('pos_sync', (data) => {
-        socket.broadcast.emit('pos_sync', data);
+        for (const [id, v] of gameState) {
+            if (v.ownerId === socket.id) gameState.delete(id);
+        }
     });
 });
+
+// Tick autoritaire 50ms : un seul io.emit pour TOUS les clients en même temps
+setInterval(() => {
+    if (gameState.size === 0) return;
+    const now      = Date.now();
+    const snapshot = [];
+    for (const [id, v] of gameState) {
+        if (now - v.updatedAt > 3000) { gameState.delete(id); continue; } // stale → purge
+        snapshot.push({ id, x: v.x, y: v.y, a: v.a });
+    }
+    if (snapshot.length > 0) io.emit('tick', { t: now, vehicles: snapshot });
+}, 50);
 
 // --- Base neutre (fortification sans joueur) ---
 // Migration : colonne titanium

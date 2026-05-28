@@ -121,18 +121,40 @@ function animerVehicules() {
         });
     });
 
-    // Mouvement simplifié pour les véhicules des autres joueurs (interpolation directe)
+    // ── Mouvement des véhicules ennemis : interpolation de buffer ───────────────
+    // pos_sync (~50ms) remplit _posBuffer avec des positions horodatées.
+    // On rejoue ces positions avec INTERP_DELAY ms de retard : cela garantit toujours
+    // deux points encadrant le temps de rendu → mouvement fluide, sans rollback,
+    // rotation identique à celle du joueur owner.
+    const INTERP_DELAY = 100;
     bases.forEach(b => {
         if (!b.vehicules || b.joueur_id == joueur_id) return;
         b.vehicules.forEach(v => {
             if (!v.construit || v.cur_x == null) return;
-            const dx = v.x - v.cur_x, dy = v.y - v.cur_y;
-            const dist = Math.hypot(dx, dy);
-            if (dist < 1) return;
-            const spd = Math.min(vcfg(v).speed, dist);
-            v.cur_x += (dx / dist) * spd;
-            v.cur_y += (dy / dist) * spd;
-            majDirection(v, dx, dy);
+            const buf = v._posBuffer;
+            if (!buf || buf.length < 2) return; // pas encore assez de données — position figée
+
+            const renderTime = now - INTERP_DELAY;
+
+            // Trouver lo = index le plus grand tel que buf[lo].t <= renderTime
+            let lo = buf.length - 2;
+            while (lo > 0 && buf[lo].t > renderTime) lo--;
+
+            const p0 = buf[lo], p1 = buf[lo + 1];
+
+            if (renderTime >= p1.t) {
+                // renderTime dépasse toutes les entrées : tenir la dernière position
+                v.cur_x = p1.x; v.cur_y = p1.y; v.frameIndex = p1.a;
+            } else {
+                const dt    = p1.t - p0.t;
+                const alpha = dt > 0 ? Math.max(0, Math.min(1, (renderTime - p0.t) / dt)) : 1;
+                v.cur_x     = p0.x + (p1.x - p0.x) * alpha;
+                v.cur_y     = p0.y + (p1.y - p0.y) * alpha;
+                v.frameIndex = alpha < 0.5 ? p0.a : p1.a;
+            }
+
+            // Purger les entrées périmées (garder toujours p0 et p1 courants)
+            if (lo > 0) v._posBuffer.splice(0, lo);
         });
     });
 
@@ -758,18 +780,18 @@ function animerVehicules() {
     // Broadcast temps-réel : envoyer la position de chaque véhicule en mouvement
     {
         const _t = Date.now();
-        if (!animerVehicules._lastSync || _t - animerVehicules._lastSync > 150) {
+        if (!animerVehicules._lastSync || _t - animerVehicules._lastSync > 50) {
             animerVehicules._lastSync = _t;
             const positions = [];
             bases.forEach(b => {
                 if (!b.vehicules || b.joueur_id != joueur_id) return;
                 b.vehicules.forEach(v => {
                     if (v.construit && v.cur_x != null && !v._reachedDest)
-                        positions.push({ id: v.id, x: Math.round(v.cur_x), y: Math.round(v.cur_y) });
+                        positions.push({ id: v.id, x: Math.round(v.cur_x), y: Math.round(v.cur_y), a: v.frameIndex ?? 0 });
                 });
             });
             if (positions.length > 0 && typeof socket !== 'undefined')
-                socket.emit('pos_sync', positions);
+                socket.emit('owner_positions', positions);
         }
     }
 
